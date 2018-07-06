@@ -1,0 +1,72 @@
+{% extends "default.html" %}
+
+{% block title %}{{ method }} Classifier{% endblock %}
+
+{% block content %}
+    <div class="col-md-12 col-md-offset-3">
+        <div class="row">
+            <div class="col-md-3"></div>
+            <form class="col-md-6 col-centered" id="tweet-form" action="#" method="post">
+                <textarea class="form-control" rows="4" id="tweet-box" name="status"
+                          placeholder="Compose new Tweet..."></textarea>
+                <span id="tweet-char-countdown"></span>
+                <button type="submit" class="btn btn-success btn-lg" id="tweet-submit">Tweet</button>
+            </form>
+            <div class="col-md-3"></div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3"></div>
+            <ul id="suggestions" class="list-inline"></ul>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+
+    <script src="{{ url_for('static', filename='components/jquery-autosize/jquery.autosize.min.js') }}"></script>
+    <script>
+        function updateCountdown() {
+            // 140 chars is the max for Twitter
+            var remaining = 140 - $("#tweet-box").val().length;
+            $("#tweet-char-countdown").text(remaining);
+
+            $("#tweet-char-countdown").toggleClass("red", remaining < 0);
+            $("#tweet-char-countdown").toggleClass("grey", remaining >= 0);
+            $("#tweet-submit").prop('disabled', remaining < 0);
+        }
+
+        function displaySuggestions(data) {
+            var items = [];
+            $.each(data, function (i, item) {
+                items.push('<li><a href="#">' + item + '</a></li>')
+                $("#suggestions").empty();
+                $("#suggestions").append(items.join(''));
+
+                $("#suggestions a").click(function () {
+                    tb = $('#tweet-box').val();
+                    $('#tweet-box').val(tb.replace(/\s\s*$/, '') + ' ' + $(this).text());
+                });
+            });
+        }
+
+        $(document).ready(function () {
+            updateCountdown();
+            $("#tweet-box").on("input", function () {
+                updateCountdown();
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: "/api/classify/{{ method }}",
+                    data: JSON.stringify({
+                        text: $("#tweet-box").val(),
+                        results: 5,
+                    }),
+                    success: displaySuggestions,
+                });
+            });
+            $("#tweet-box").autosize();
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,23 @@
+{
+  "name": "Hashtag Recommendation",
+  "homepage": "unknown",
+  "description": "An intelligent hashtag recommendation tool for use with Twitter. ",
+  "main": "app.py",
+  "authors": [
+    "Jim Tran"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~4.1.0",
+    "font-awesome": "~4.0.3",
+    "jquery-autosize": "~1.18.6",
+    "jquery.tagcloud.js": "https://github.com/addywaddy/jquery.tagcloud.js.git"
+  }
+}

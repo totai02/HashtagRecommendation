@@ -1,0 +1,84 @@
+body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+.col-centered{
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.cover-wrapper {
+    margin: 0 auto;
+    text-align: center;
+}
+
+div#home {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 800px;
+}
+
+#tweet-btn {
+    color: #fff;
+    padding: 6px 12px;
+}
+
+#tweet-btn:hover {
+    background-color: #3276B1;
+}
+
+#tweet-form {
+    margin-top: 50px;
+    text-align: right;
+}
+
+#tweet-box {
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+
+#tweet-char-countdown {
+    float: left;
+    font-size: 1.2em;
+}
+
+.alert {
+    margin-top: 50px;
+}
+
+#suggestions {
+    margin-top: 30px;
+    font-size: 1.5em;
+}
+
+#search-form {
+    margin-top: 50px;
+    text-align: center;
+}
+
+#search-submit {
+    margin-top: 15px;
+}
+
+#results {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 500px;
+}
+
+.tagcloud {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 500px;
+    text-align: center;
+}
+
+.center {
+    text-align: center;
+}
+
+.grey { color: #aaaaaa; }
+.red { color: #ca332f; }

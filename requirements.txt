@@ -1,0 +1,6 @@
+APScheduler==2.1.2
+flask_restful
+tweepy==3.5.0
+nltk==3.3
+matplotlib==2.2.2
+flask-bower
