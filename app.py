@@ -1,14 +1,15 @@
-from flask import Flask, render_template
-from flask_bower import Bower
+from classifier_manager import classifier, evaluate, listener, train_classifier, dump_classifier, dump_evaluate, \
+    Interval
 from flask_restful import Resource, Api, reqparse
-from apscheduler.scheduler import Scheduler
-from multiprocessing import Process
-from classifier_manager import classifier, evaluate, train_classifier, dump_classifier, dump_evaluate
+from flask import Flask, render_template, request
+from flask_bower import Bower
+from threading import Thread
+import requests
+import json
 
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.wsgi import WSGIContainer
-
 
 app = Flask(__name__)
 Bower(app)
@@ -33,11 +34,13 @@ def nb_classifier():
 
 @app.route("/stats/classifier")
 def stats_classifier():
-    return ""
+    results = requests.get(request.url_root + "api/status/classifier")
+    results.raise_for_status()
+    return results.text
 
 
 @app.route("/stats/evaluate")
-def stats_classifier():
+def stats_evaluate():
     return ""
 
 
@@ -57,7 +60,7 @@ class ClassificationAPI(Resource):
 api.add_resource(ClassificationAPI, "/api/classify/<string:method>")
 
 
-class StatusClassifierAPI(Resource):
+class ClassifierStatusAPI(Resource):
     def get(self):
         tweet_total, tweet_clean, one_hashtag, multi_hashtag, non_hashtag, start_time, dump_time = classifier.get_status()
         return {
@@ -73,7 +76,7 @@ class StatusClassifierAPI(Resource):
         }
 
 
-class StatusEvaluateAPI(Resource):
+class EvaluateStatusAPI(Resource):
     def get(self):
         hfihu_precision, hfihu_recall, nb_precision, nb_recall, tweets_train, tweets_test, dump_time = evaluate.get_status()
         return {
@@ -91,40 +94,54 @@ class StatusEvaluateAPI(Resource):
         }
 
 
-api.add_resource(StatusClassifierAPI, '/api/classifier/status')
-api.add_resource(StatusEvaluateAPI, '/api/evaluate/status')
+class DownloaderStatusAPI(Resource):
+    def get(self):
+        total_tweet, start_time = listener.get_status()
+        return {
+            "total_tweet": total_tweet,
+            "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+
+api.add_resource(ClassifierStatusAPI, '/api/status/classifier')
+api.add_resource(EvaluateStatusAPI, '/api/status/evaluate')
+api.add_resource(DownloaderStatusAPI, '/api/status/downloader')
 
 
 def dev_server():
-    trainer = Process(target=train_classifier)
+    trainer = Thread(target=train_classifier)
     trainer.start()
 
-    sched_classifier = Scheduler()
+    sched_classifier = Interval(3600, dump_classifier)
     sched_classifier.start()
-    sched_classifier.add_interval_job(dump_classifier, hours=1)
 
-    sched_evaluate = Scheduler()
+    sched_evaluate = Interval(2 * 3600, dump_evaluate)
     sched_evaluate.start()
-    sched_evaluate.add_interval_job(dump_evaluate, hours=2)
 
     app.run(debug=True)
 
+    trainer.join()
+    sched_classifier.join()
+    sched_evaluate.join()
+
 
 def server():
-    trainer = Process(target=train_classifier)
+    trainer = Thread(target=train_classifier)
     trainer.start()
 
-    sched_classifier = Scheduler()
+    sched_classifier = Interval(3600, dump_classifier)
     sched_classifier.start()
-    sched_classifier.add_interval_job(dump_classifier, hours=1)
 
-    sched_evaluate = Scheduler()
+    sched_evaluate = Interval(2 * 3600, dump_evaluate)
     sched_evaluate.start()
-    sched_evaluate.add_interval_job(dump_evaluate, hours=2)
 
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(5000)
     IOLoop.instance().start()
+
+    trainer.join()
+    sched_classifier.join()
+    sched_evaluate.join()
 
 
 if __name__ == '__main__':

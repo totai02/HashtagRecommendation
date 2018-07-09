@@ -1,4 +1,5 @@
 from tweepy.streaming import StreamListener
+from threading import Timer
 from classifier import Classifier
 from evaluate import Evaluate
 from datetime import datetime
@@ -6,8 +7,27 @@ from tweepy import OAuthHandler
 from tweepy import Stream
 import json
 
-classifier = Classifier()
-evaluate = Evaluate(classifier)
+
+class Interval:
+
+    def __init__(self, t, func):
+        self.t = t
+        self.func = func
+        self.thread = Timer(self.t, self.handle_function)
+
+    def handle_function(self):
+        self.func()
+        self.thread = Timer(self.t, self.handle_function)
+        self.thread.start()
+
+    def start(self):
+        self.thread.start()
+
+    def cancel(self):
+        self.thread.cancel()
+
+    def join(self):
+        self.thread.join()
 
 
 class MyListener(StreamListener):
@@ -15,13 +35,18 @@ class MyListener(StreamListener):
     def __init__(self):
         self.max_tweets_per_second = 10
         self.current_tweets = 0
+        self.start_time = datetime.now()
         self.last_time = datetime.now()
         self.count_tweet = 0
+        self.total_tweet = 0
         super(MyListener, self).__init__()
+
+    def get_status(self):
+        return self.total_tweet, self.start_time
 
     def on_data(self, data):
         tweet = json.loads(data)
-
+        self.total_tweet += 1
         if 'text' in tweet:
             if "RT @" in tweet['text'] or tweet['retweeted'] is True:
                 return True
@@ -57,7 +82,13 @@ class MyListener(StreamListener):
         return True
 
 
+classifier = Classifier()
+evaluate = Evaluate(classifier)
+listener = MyListener()
+
+
 def train_classifier():
+    global listener
     consumer_key = 'JLZAWxT74QZ4gFBhZvW1G2WUd'
     consumer_secret = 'W8qQPm82bOtJy744rZuJ52JhNsrMHzCnjXU54UEpG9oFJTtr96'
     access_token = '3236157257-CEbv8yEVjPBL4g6IZJDPAMwotsROQgTXFQoTfcF'
@@ -66,7 +97,7 @@ def train_classifier():
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_secret)
 
-    twitter_stream = Stream(auth, MyListener())
+    twitter_stream = Stream(auth, listener)
     filtro = ['worldcup', '#worldcup', 'world cup']
     while True:
         try:
@@ -83,3 +114,5 @@ def dump_classifier():
 def dump_evaluate():
     evaluate.state_dump()
     print("Dump evaluate: " + str(datetime.now()))
+
+
