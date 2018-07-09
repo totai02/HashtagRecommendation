@@ -90,7 +90,7 @@ def dev_server():
     sched_evaluate = Interval(2 * 3600, dump_evaluate)
     sched_evaluate.start()
 
-    app.run(debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
 
     trainer.join()
     sched_classifier.join()
