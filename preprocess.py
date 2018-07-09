@@ -1,9 +1,6 @@
-import nltk
 from nltk.corpus import stopwords
 import string
 import re
-
-nltk.download('stopwords')
 
 emoticons_str = r"""
     (?:
