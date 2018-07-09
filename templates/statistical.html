@@ -1,0 +1,89 @@
+{% extends "default.html" %}
+
+{% block title %}
+    {% if method == 'hfihu' %}
+        Stats - Hashtag Recommendation
+    {% else %}
+        Stats - Hashtag Recommendation
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <h1>Stats</h1>
+    <div id="stats">
+        <b class="fa fa-refresh fa-spin"></b>
+    </div>
+    <div id="plots">
+        <b class="fa fa-refresh fa-spin"></b>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function format(val) {
+            if ($.type(val) == "string") {
+                val = val.replace(/_/g, " ");
+                return val.replace(/\w\S*/g, function (txt) {
+                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                });
+            }
+            else if ($.type(val) == "number" && val % 1 != 0) {
+                return val.toFixed(2);
+            }
+            return val;
+        }
+
+        function displayStats(data) {
+            let stats = '';
+            $.each(data, function (key, value) {
+                let panel = '<div class="card bg-light mb-3">';
+                panel += '<div class="card-header"><strong>' + format(key) + '</strong></div>';
+                panel += '<div class="card-body">';
+
+                panel += '<table class="table"><tbody>';
+                $.each(value, function (subkey, subvalue) {
+                    panel += '<tr>';
+                    panel += '<td>' + format(subkey) + '</td>';
+                    panel += '<td>' + format(subvalue) + '</td>';
+                    panel += '</tr>';
+                });
+
+                panel += '</tbody></table></div></div>';
+                stats += panel;
+            });
+
+            $('#stats').empty();
+            $('#stats').append(stats);
+        }
+
+        function displayPlot(data) {
+            let panel = '<div class="card bg-light mb-3">';
+            panel += '<div class="card-header"><strong>Evaluation metric: precision and recall</strong></div>';
+            panel += '<div class="card-body">';
+
+            panel += '<div class="row justify-content-center">';
+            panel += data;
+            panel += '</div>';
+
+
+            panel += '</tbody></table></div></div>';
+
+            $('#plots').empty();
+            $('#plots').append(panel);
+
+        }
+
+        $(document).ready(function () {
+            $.ajax({
+                type: "GET",
+                url: "/api/status/classifier",
+                success: displayStats
+            });
+            $.ajax({
+                type: "GET",
+                url: "/api/status/evaluate",
+                success: displayPlot
+            });
+        })
+    </script>
+{% endblock %}

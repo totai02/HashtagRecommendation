@@ -46,12 +46,13 @@ class MyListener(StreamListener):
 
     def on_data(self, data):
         tweet = json.loads(data)
-        self.total_tweet += 1
         if 'text' in tweet:
             if "RT @" in tweet['text'] or tweet['retweeted'] is True:
                 return True
         else:
             return True
+
+        self.total_tweet += 1
 
         if (datetime.now() - self.last_time).seconds > 0:
             self.current_tweets = 0

@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt, mpld3
 from preprocess import preprocess, stop
 from multiprocessing import Lock
 from datetime import datetime
@@ -26,9 +29,10 @@ class Evaluate(object):
 
         self.lock = Lock()
 
+        self.html_fig = ""
         self.state_load()
 
-    def get_status(self):
+    def update_plot(self):
         hfihu_precision = {}
         hfihu_recall = {}
         nb_precision = {}
@@ -40,7 +44,44 @@ class Evaluate(object):
             if num == 1 or num >= 10:
                 hfihu_recall[num] = self.hfihu_sumHS[num] / self.hfihu_sumHi[num]
                 nb_recall[num] = self.nb_sumHS[num] / self.nb_sumHi[num]
-        return hfihu_precision, hfihu_recall, nb_precision, nb_recall, self.tweets_train, self.tweets_test, self.dump_time
+
+        hfihu_precision_x = [int(num) for num in hfihu_precision.keys()]
+        hfihu_precision_y = [num * 100 for num in hfihu_precision.values()]
+        hfihu_recall_x = [int(num) for num in hfihu_recall.keys()]
+        hfihu_recall_y = [num * 100 for num in hfihu_recall.values()]
+
+        nb_precision_x = [int(num) for num in nb_precision.keys()]
+        nb_precision_y = [num * 100 for num in nb_precision.values()]
+        nb_recall_x = [int(num) for num in nb_recall.keys()]
+        nb_recall_y = [num * 100 for num in nb_recall.values()]
+
+        plt.figure().clear()
+        plt.rcParams.update({'font.size': 14})
+        plt.gcf().set_size_inches(15, 5)
+        plt.subplot(1, 2, 1)
+        plt.plot(hfihu_precision_x, hfihu_precision_y, label="HF-IHU", marker="o")
+        plt.plot(nb_precision_x, nb_precision_y, label="Naive Bayes", marker="s")
+        plt.ylim(0, 100)
+        plt.xlabel('Number of Ranked Recommendations')
+        plt.ylabel('Precision: %Ground Truth Hashtags Matched by\nRecommendations')
+        plt.title("Precision")
+        plt.legend()
+        plt.grid(True)
+
+        plt.subplot(1, 2, 2)
+        plt.plot(hfihu_recall_x, hfihu_recall_y, label="HF-IHU", marker="o")
+        plt.plot(nb_recall_x, nb_recall_y, label="Naive Bayes", marker="s")
+        plt.xlabel('Number of Ranked Recommendations')
+        plt.ylabel('Recall: %Ground Truth Hashtags Matched by\nRecommendations')
+        plt.title("Recall")
+        plt.ylim(0, 100)
+        plt.legend()
+        plt.grid(True)
+
+        self.html_fig = mpld3.fig_to_html(plt.gcf())
+
+    def get_status(self):
+        return self.html_fig
 
     def add_tweet(self, tweet):
         terms_hash = [term for term in preprocess(tweet['text']) if term.startswith('#') and len(term) > 1]
@@ -90,10 +131,12 @@ class Evaluate(object):
                 self.tweets_train = pickle.load(f)
                 self.tweets_test = pickle.load(f)
                 self.dump_time = pickle.load(f)
+                self.update_plot()
 
     def state_dump(self):
         with open("evaluate.pickle", "rb") as f:
             with self.lock:
+                self.update_plot()
                 self.dump_time = datetime.now()
                 pickle.dump(self.hfihu_sumHi, f, pickle.HIGHEST_PROTOCOL)
                 pickle.dump(self.hfihu_sumSi, f, pickle.HIGHEST_PROTOCOL)

@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block body %}
-
     <nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top">
         <a class="navbar-brand" href="#">Tweeter</a>
         <ul class="navbar-nav">
@@ -12,15 +11,12 @@
                 <a class="nav-link" href="/classifier/nb">Naive Bayes</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">Classifier Stats</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">Evaluate Stats</a>
+                <a class="nav-link" href="/stats">Stats</a>
             </li>
         </ul>
     </nav>
 
-    <div class="container">
+    <div class="container-fluid">
         {% block content %}{% endblock %}
     </div>
 {% endblock %}
