@@ -134,7 +134,7 @@ class Evaluate(object):
                 self.update_plot()
 
     def state_dump(self):
-        with open("evaluate.pickle", "rb") as f:
+        with open("evaluate.pickle", "wb") as f:
             with self.lock:
                 self.update_plot()
                 self.dump_time = datetime.now()

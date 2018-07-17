@@ -1,4 +1,5 @@
 from tweepy.streaming import StreamListener
+import threading
 from threading import Timer
 from classifier import Classifier
 from evaluate import Evaluate
@@ -89,7 +90,6 @@ listener = MyListener()
 
 
 def train_classifier():
-    global listener
     consumer_key = 'JLZAWxT74QZ4gFBhZvW1G2WUd'
     consumer_secret = 'W8qQPm82bOtJy744rZuJ52JhNsrMHzCnjXU54UEpG9oFJTtr96'
     access_token = '3236157257-CEbv8yEVjPBL4g6IZJDPAMwotsROQgTXFQoTfcF'

@@ -90,7 +90,7 @@ def dev_server():
     sched_evaluate = Interval(2 * 3600, dump_evaluate)
     sched_evaluate.start()
 
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(debug=True)
 
     trainer.join()
     sched_classifier.join()
@@ -119,9 +119,9 @@ def server():
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         if sys.argv[1] == 'dev':
-            print("Server started.")
             dev_server()
         else:
             print("argument err!")
     else:
+        print("Server started.")
         server()
